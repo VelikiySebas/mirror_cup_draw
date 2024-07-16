@@ -45,6 +45,26 @@ function App() {
     }
   };
 
+  const playPlayerPlacedSound = () => {
+    if (audioContextRef.current) {
+      const oscillator = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+      
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(660, audioContextRef.current.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(880, audioContextRef.current.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current.currentTime + 0.3);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+      
+      oscillator.start();
+      oscillator.stop(audioContextRef.current.currentTime + 0.3);
+    }
+  };
+
   const shufflePlayers = () => {
     setPlayers(prevPlayers => {
       const shuffled = [...prevPlayers];
@@ -89,6 +109,8 @@ function App() {
           newBlocks[lastHighlightedBlockRef.current] = { name: players[currentPlayerIndex], isNew: true };
           return newBlocks;
         });
+
+        playPlayerPlacedSound();
         setCurrentPlayerIndex(prev => prev + 1);
         setHighlightedBlock(null);
         setIsAnimating(false);
@@ -116,6 +138,7 @@ function App() {
       });
       setCurrentPlayerIndex(prev => prev + 1);
       setIsWaitingForLastPlayer(false);
+      playPlayerPlacedSound();
 
       setTimeout(() => {
         setBlocks(prev => prev.map(block => 

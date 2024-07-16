@@ -47,21 +47,52 @@ function App() {
 
   const playPlayerPlacedSound = () => {
     if (audioContextRef.current) {
-      const oscillator = audioContextRef.current.createOscillator();
-      const gainNode = audioContextRef.current.createGain();
+      const duration = 0.5;
+      const ctx = audioContextRef.current;
       
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(660, audioContextRef.current.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(880, audioContextRef.current.currentTime + 0.1);
-      
-      gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current.currentTime + 0.3);
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContextRef.current.destination);
-      
-      oscillator.start();
-      oscillator.stop(audioContextRef.current.currentTime + 0.3);
+      // Основной тон
+      const mainOsc = ctx.createOscillator();
+      mainOsc.type = 'triangle';
+      mainOsc.frequency.setValueAtTime(440, ctx.currentTime);
+      mainOsc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + duration);
+
+      // Гармоника
+      const harmonicOsc = ctx.createOscillator();
+      harmonicOsc.type = 'sine';
+      harmonicOsc.frequency.setValueAtTime(660, ctx.currentTime);
+      harmonicOsc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + duration);
+
+      // Модулятор для вибрато
+      const modulatorOsc = ctx.createOscillator();
+      modulatorOsc.type = 'sine';
+      modulatorOsc.frequency.setValueAtTime(10, ctx.currentTime);
+
+      const modulatorGain = ctx.createGain();
+      modulatorGain.gain.setValueAtTime(10, ctx.currentTime);
+
+      // Основной усилитель
+      const mainGain = ctx.createGain();
+      mainGain.gain.setValueAtTime(0.5, ctx.currentTime);
+      mainGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+      // Подключаем все вместе
+      modulatorOsc.connect(modulatorGain);
+      modulatorGain.connect(mainOsc.frequency);
+      modulatorGain.connect(harmonicOsc.frequency);
+
+      mainOsc.connect(mainGain);
+      harmonicOsc.connect(mainGain);
+      mainGain.connect(ctx.destination);
+
+      // Запускаем осцилляторы
+      mainOsc.start(ctx.currentTime);
+      harmonicOsc.start(ctx.currentTime);
+      modulatorOsc.start(ctx.currentTime);
+
+      // Останавливаем осцилляторы
+      mainOsc.stop(ctx.currentTime + duration);
+      harmonicOsc.stop(ctx.currentTime + duration);
+      modulatorOsc.stop(ctx.currentTime + duration);
     }
   };
 

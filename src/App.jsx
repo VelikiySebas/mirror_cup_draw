@@ -15,6 +15,7 @@ function App() {
   const [isWaitingForLastPlayer, setIsWaitingForLastPlayer] = useState(false);
   const animationRef = useRef(null);
   const lastHighlightedBlockRef = useRef(null);
+  const audioContextRef = useRef(null);
 
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();

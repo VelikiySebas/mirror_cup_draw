@@ -16,6 +16,34 @@ function App() {
   const animationRef = useRef(null);
   const lastHighlightedBlockRef = useRef(null);
 
+  useEffect(() => {
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
+
+  const playSound = () => {
+    if (audioContextRef.current) {
+      const oscillator = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
+      
+      gainNode.gain.setValueAtTime(0.1, audioContextRef.current.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current.currentTime + 0.1);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+      
+      oscillator.start();
+      oscillator.stop(audioContextRef.current.currentTime + 0.1);
+    }
+  };
+
   const shufflePlayers = () => {
     setPlayers(prevPlayers => {
       const shuffled = [...prevPlayers];
@@ -48,6 +76,8 @@ function App() {
         const randomIndex = emptyBlocks[Math.floor(Math.random() * emptyBlocks.length)];
         setHighlightedBlock(randomIndex);
         lastHighlightedBlockRef.current = randomIndex;
+
+        playSound();
 
         animationRef.current = setTimeout(() => {
           requestAnimationFrame(animate);

@@ -174,7 +174,7 @@ function App() {
       </div>
 
       <img className='absolute h-[700px] z-10' src="./сетка.png" alt="" />
-      <video autoPlay loop className='absolute left-0 top-0' src="/bracket_bg.mp4" muted></video>
+      <video autoPlay loop className='absolute left-0 top-0' src="./bracket_bg.mp4" muted></video>
 
     </div>
   );

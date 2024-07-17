@@ -5,6 +5,7 @@ const INITIAL_PLAYERS = ['SilverSunrise', 'RINS_RING', 'Nagasaki', 'yoxiyo'];
 const BLOCK_COUNT = 4;
 const ANIMATION_DURATION = 5000; 
 const LAST_PLAYER_DELAY = 1000;
+const AUTO_PLACEMENT_DELAY = 1000;
 
 function App() {
   const [blocks, setBlocks] = useState(Array(BLOCK_COUNT).fill(null));
@@ -113,16 +114,47 @@ function App() {
         setCurrentPlayerIndex(prev => prev + 1);
         setHighlightedBlock(null);
         setIsAnimating(false);
+        setTimeout(() => {
+          setBlocks(prev => prev.map(block => 
+            block && block.isNew ? { ...block, isNew: false } : block
+          ));
+        }, 1000);
+
+        setTimeout(() => {
+          checkAndPlaceRemainingPlayers();
+        }, 1500);
+      }
+    };
+    requestAnimationFrame(animate);
+  };
+
+  const checkAndPlaceRemainingPlayers = () => {
+    const filledBlocks = blocks.map((block, index) => block ? index : null).filter(index => index !== null);
+    if (filledBlocks.length === 2 && 
+        ((filledBlocks[0] === 0 && filledBlocks[1] === 1) || 
+         (filledBlocks[0] === 2 && filledBlocks[1] === 3))) {
+      
+      setTimeout(() => {
+        const remainingBlocks = blocks.map((block, index) => block === null ? index : null).filter(index => index !== null);
+        setBlocks(prev => {
+          const newBlocks = [...prev];
+          newBlocks[remainingBlocks[0]] = { name: players[2], isNew: true };
+          newBlocks[remainingBlocks[1]] = { name: players[3], isNew: true };
+          return newBlocks;
+        });
+        setCurrentPlayerIndex(4);
+        playPlayerPlacedSound();
+        setTimeout(() => {
+          playPlayerPlacedSound();
+        }, 500);
 
         setTimeout(() => {
           setBlocks(prev => prev.map(block => 
             block && block.isNew ? { ...block, isNew: false } : block
           ));
         }, 1000);
-      }
-    };
-
-    requestAnimationFrame(animate);
+      }, AUTO_PLACEMENT_DELAY);
+    }
   };
 
   const placeLastPlayer = () => {
@@ -148,10 +180,12 @@ function App() {
   };
 
   useEffect(() => {
-    if (currentPlayerIndex === players.length - 1) {
+    if (currentPlayerIndex === 2) {
+      checkAndPlaceRemainingPlayers();
+    } else if (currentPlayerIndex === players.length - 1 && blocks.includes(null)) {
       placeLastPlayer();
     }
-  }, [currentPlayerIndex, players.length]);
+  }, [currentPlayerIndex, blocks]);
 
   useEffect(() => {
     return () => {

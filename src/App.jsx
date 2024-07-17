@@ -108,7 +108,7 @@ function App() {
         setHighlightedBlock(randomIndex);
         lastHighlightedBlockRef.current = randomIndex;
 
-        playTickSound();
+        playSound();
 
         animationRef.current = setTimeout(() => {
           requestAnimationFrame(animate);

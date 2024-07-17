@@ -92,12 +92,23 @@ function App() {
       const interval = 50 + (progress * 450); 
       
       if (progress < 1) {
-        const emptyBlocks = blocks.map((b, i) => b === null ? i : null).filter(i => i !== null);
-        const randomIndex = emptyBlocks[Math.floor(Math.random() * emptyBlocks.length)];
+        let availableBlocks;
+        if (currentPlayerIndex === 0) {
+          availableBlocks = blocks.map((b, i) => b === null ? i : null).filter(i => i !== null);
+        } else if (currentPlayerIndex === 1) {
+          const firstPlayerPosition = blocks.findIndex(b => b !== null);
+          availableBlocks = blocks.map((b, i) => 
+            b === null && Math.abs(i - firstPlayerPosition) > 1 ? i : null
+          ).filter(i => i !== null);
+        } else {
+          availableBlocks = blocks.map((b, i) => b === null ? i : null).filter(i => i !== null);
+        }
+
+        const randomIndex = availableBlocks[Math.floor(Math.random() * availableBlocks.length)];
         setHighlightedBlock(randomIndex);
         lastHighlightedBlockRef.current = randomIndex;
 
-        playSound();
+        playTickSound();
 
         animationRef.current = setTimeout(() => {
           requestAnimationFrame(animate);
@@ -108,11 +119,11 @@ function App() {
           newBlocks[lastHighlightedBlockRef.current] = { name: players[currentPlayerIndex], isNew: true };
           return newBlocks;
         });
-
-        playPlayerPlacedSound();
         setCurrentPlayerIndex(prev => prev + 1);
         setHighlightedBlock(null);
         setIsAnimating(false);
+
+        playPlayerPlacedSound();
 
         setTimeout(() => {
           setBlocks(prev => prev.map(block => 
